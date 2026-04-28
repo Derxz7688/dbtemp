@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纳爱斯“牙菌斑大作战”互动界面设计 - 答辩汇报</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #fff; overflow: hidden; position: relative;
+            background:
+                radial-gradient(circle at bottom left, #001f54 0%, transparent 50%),
+                radial-gradient(circle at top right, #001f54 0%, transparent 30%),
+                #000000;
+            animation: gradientShift 15s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-size: 100% 100%; }
+            50% { background-size: 110% 110%; }
+            100% { background-size: 100% 100%; }
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.15;
+            mix-blend-mode: overlay;
+            animation: noiseMove 20s linear infinite;
+        }
+        @keyframes noiseMove {
+            0% { transform: translate(0, 0) scale(1.1); }
+            25% { transform: translate(-2%, -2%) scale(1.05); }
+            50% { transform: translate(0, 0) scale(1.1); }
+            75% { transform: translate(2%, 2%) scale(1.05); }
+            100% { transform: translate(0, 0) scale(1.1); }
+        }
+        .container { width: 100vw; height: 100vh; position: relative; }
+        .particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-family: sans-serif;
+            text-align: right;
+            z-index: 100;
+        }
+        .logo svg {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 4px;
+        }
+        .logo-text {
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .slide { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px; background: transparent !important; }
+        .slide.active { opacity: 1; visibility: visible; }
+        .slide-content { max-width: 1400px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .text-section { z-index: 2; }
+        .visual-section { position: relative; height: 500px; display: flex; align-items: center; justify-content: center; }
+
+        h1 { font-size: 5rem; font-weight: 800; margin-bottom: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 60px rgba(102,126,234,0.3); }
+        h2 { font-size: 3.2rem; font-weight: 700; margin-bottom: 35px; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+        h3 { font-size: 2rem; font-weight: 600; margin-bottom: 25px; color: #a0a0ff; letter-spacing: 2px; }
+        p { font-size: 1.4rem; line-height: 2; color: #d0d0e0; margin-bottom: 25px; font-weight: 400; }
+
+        .highlight {
+            color: #667eea;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%);
+            padding: 2px 10px;
+            border-radius: 6px;
+            border-bottom: 3px solid #667eea;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-weight: 700;
+            color: #fff;
+        }
+        .text-bold { font-weight: 700; color: #fff; }
+        .text-italic { font-style: italic; color: #c0c0ff; }
+        .text-underline {
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 6px;
+        }
+        .text-bg {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(102,126,234,0.15) 100%);
+            padding: 20px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(102,126,234,0.3);
+            font-size: 1.3rem;
+        }
+
+        .feature-list { list-style: none; margin-top: 35px; }
+        .feature-list li {
+            padding: 18px 0;
+            padding-left: 40px;
+            position: relative;
+            font-size: 1.3rem;
+            color: #e0e0f0;
+            font-weight: 500;
+            background: rgba(102,126,234,0.05);
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .feature-list li:hover {
+            background: rgba(102,126,234,0.1);
+            border-left-color: #667eea;
+            padding-left: 45px;
+        }
+        .feature-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 15px;
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Stagger Animation Classes */
+        .animate-item { opacity: 0; transform: translateY(30px); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide.active .animate-item { opacity: 1; transform: translateY(0); }
+        .slide.active .animate-item:nth-child(1) { transition-delay: 0.1s; }
+        .slide.active .animate-item:nth-child(2) { transition-delay: 0.2s; }
+        .slide.active .animate-item:nth-child(3) { transition-delay: 0.3s; }
+        .slide.active .animate-item:nth-child(4) { transition-delay: 0.4s; }
+        .slide.active .animate-item:nth-child(5) { transition-delay: 0.5s; }
+        .slide.active .animate-item:nth-child(6) { transition-delay: 0.6s; }
+        .slide.active .animate-item:nth-child(7) { transition-delay: 0.7s; }
+        .slide.active .animate-item:nth-child(8) { transition-delay: 0.8s; }
+
+        .animate-fade-left { opacity: 0; transform: translateX(-50px); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .animate-fade-right { opacity: 0; transform: translateX(50px); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .animate-fade-up { opacity: 0; transform: translateY(40px); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .animate-fade-scale { opacity: 0; transform: scale(0.8); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide.active .animate-fade-left { opacity: 1; transform: translateX(0); }
+        .slide.active .animate-fade-right { opacity: 1; transform: translateX(0); }
+        .slide.active .animate-fade-up { opacity: 1; transform: translateY(0); }
+        .slide.active .animate-fade-scale { opacity: 1; transform: scale(1); }
+
+        .slide.active .delay-1 { transition-delay: 0.1s; }
+        .slide.active .delay-2 { transition-delay: 0.2s; }
+        .slide.active .delay-3 { transition-delay: 0.3s; }
+        .slide.active .delay-4 { transition-delay: 0.4s; }
+        .slide.active .delay-5 { transition-delay: 0.5s; }
+        .slide.active .delay-6 { transition-delay: 0.6s; }
+        .slide.active .delay-7 { transition-delay: 0.7s; }
+        .slide.active .delay-8 { transition-delay: 0.8s; }
+
+        /* Slide 1 - Cover */
+        .slide-1 .slide-content { grid-template-columns: 1fr; text-align: center; }
+        .slide-1 h1 { font-size: 5.5rem; margin-bottom: 30px; letter-spacing: 4px; line-height: 1.2; }
+        .slide-1 .subtitle { font-size: 2.2rem; color: #a0a0ff; margin-bottom: 40px; font-weight: 500; letter-spacing: 8px; }
+        .hero-visual { position: relative; width: 700px; height: 320px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .hero-card { width: 200px; height: 280px; background: linear-gradient(135deg, rgba(102,126,234,0.13) 0%, rgba(118,75,162,0.13) 100%); border: 3px solid rgba(102,126,234,0.4); border-radius: 20px; position: relative; overflow: hidden; animation: float 3s ease-in-out infinite; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .hero-card:nth-child(2) { animation-delay: 0.2s; transform: scale(1.05); z-index: 2; }
+        .hero-card:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .hero-card .icon { width: 64px; height: 64px; color: #a0a0ff; }
+        .hero-card .label { margin-top: 15px; font-size: 1.1rem; color: #a0a0ff; font-weight: 600; }
+        .tagline { margin-top: 40px; font-size: 1.4rem; color: #8080a0; font-weight: 500; letter-spacing: 4px; }
+        .cover-info { margin-top: 30px; font-size: 1.3rem; color: #a0a0c0; line-height: 2.2; }
+        .cover-info strong { color: #fff; font-weight: 700; border-bottom: 2px solid #667eea; padding-bottom: 2px; }
+
+        /* Slide 2 - TOC */
+        .slide-2 .slide-content { grid-template-columns: 1fr; text-align: center; }
+        .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 40px; }
+        .toc-card { padding: 35px 30px; background: rgba(102,126,234,0.12); border: 2px solid rgba(102,126,234,0.35); border-radius: 20px; text-align: center; transition: all 0.3s ease; }
+        .toc-card:hover { transform: translateY(-8px); background: rgba(102,126,234,0.2); border-color: rgba(102,126,234,0.6); box-shadow: 0 10px 40px rgba(102,126,234,0.2); }
+        .toc-num { display: inline-block; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-size: 1.4rem; font-weight: 800; margin-bottom: 15px; }
+        .toc-title { font-size: 1.5rem; color: #fff; font-weight: 700; }
+
+        /* Slide visual - Tooth/Game themed */
+        .tooth-visual { position: relative; width: 450px; height: 450px; display: flex; align-items: center; justify-content: center; }
+        .tooth-core { position: absolute; width: 180px; height: 180px; background: radial-gradient(circle, #667eea 0%, #764ba2 100%); border-radius: 50%; box-shadow: 0 0 80px rgba(102,126,234,0.6); animation: pulse 2s ease-in-out infinite; display: flex; align-items: center; justify-content: center; }
+        .tooth-core svg { width: 80px; height: 80px; color: #fff; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .orbit-ring { position: absolute; border: 2px solid rgba(102,126,234,0.3); border-radius: 50%; }
+        .orbit-ring:nth-child(2) { width: 260px; height: 260px; }
+        .orbit-ring:nth-child(3) { width: 340px; height: 340px; }
+        .orbit-ring:nth-child(4) { width: 420px; height: 420px; }
+        .orbit-particle { position: absolute; width: 14px; height: 14px; background: #667eea; border-radius: 50%; box-shadow: 0 0 25px rgba(102,126,234,0.9); }
+        .text-particle { position: absolute; padding: 10px 20px; background: rgba(102,126,234,0.25); border: 2px solid rgba(102,126,234,0.5); border-radius: 25px; font-size: 1rem; color: #fff; font-weight: 600; white-space: nowrap; }
+
+        /* Game mechanic visuals */
+        .game-visual { display: flex; gap: 25px; align-items: center; justify-content: center; }
+        .game-box { position: relative; border: 3px solid rgba(102,126,234,0.5); border-radius: 16px; overflow: hidden; transition: all 0.5s ease; width: 200px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(102,126,234,0.25) 0%, rgba(118,75,162,0.25) 100%); }
+        .game-box svg { width: 56px; height: 56px; color: #a0a0ff; margin-bottom: 15px; }
+        .game-box .label { padding: 8px 18px; background: rgba(0,0,0,0.7); border-radius: 20px; font-size: 1rem; color: #fff; font-weight: 600; }
+        .game-arrow { font-size: 2.5rem; color: #667eea; animation: slideRight 1s ease-in-out infinite; font-weight: bold; }
+        @keyframes slideRight { 0%, 100% { transform: translateX(0); opacity: 0.5; } 50% { transform: translateX(10px); opacity: 1; } }
+
+        /* Reward cards */
+        .reward-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .reward-card { padding: 40px 30px; background: rgba(102,126,234,0.12); border: 2px solid rgba(102,126,234,0.35); border-radius: 20px; text-align: center; transition: all 0.3s ease; }
+        .reward-card:hover { transform: translateY(-8px); background: rgba(102,126,234,0.2); border-color: rgba(102,126,234,0.6); box-shadow: 0 10px 40px rgba(102,126,234,0.2); }
+        .reward-card svg { width: 56px; height: 56px; color: #a0a0ff; margin-bottom: 20px; }
+        .reward-title { font-size: 1.6rem; color: #fff; margin-bottom: 12px; font-weight: 700; }
+        .reward-desc { font-size: 1.2rem; color: #a0a0c0; font-weight: 500; }
+
+        /* Stats visual */
+        .stats-visual { display: flex; align-items: center; justify-content: center; gap: 35px; }
+        .stats-item { text-align: center; }
+        .stats-circle { width: 140px; height: 140px; background: linear-gradient(135deg, rgba(102,126,234,0.25) 0%, rgba(118,75,162,0.25) 100%); border: 3px solid rgba(102,126,234,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 20px; transition: all 0.3s ease; }
+        .stats-item:hover .stats-circle { transform: scale(1.1); box-shadow: 0 0 50px rgba(102,126,234,0.5); }
+        .stats-label { font-size: 1.2rem; color: #fff; font-weight: 600; }
+
+        /* Future visual */
+        .future-visual { display: flex; align-items: center; justify-content: center; gap: 35px; }
+        .future-step { text-align: center; }
+        .future-icon { width: 120px; height: 120px; background: linear-gradient(135deg, rgba(102,126,234,0.25) 0%, rgba(118,75,162,0.25) 100%); border: 3px solid rgba(102,126,234,0.5); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; transition: all 0.3s ease; }
+        .future-icon svg { width: 56px; height: 56px; color: #a0a0ff; }
+        .future-step:hover .future-icon { transform: scale(1.1); box-shadow: 0 0 50px rgba(102,126,234,0.5); }
+        .future-label { font-size: 1.2rem; color: #fff; font-weight: 600; }
+        .future-arrow { color: #667eea; font-size: 2rem; animation: flowRight 1.5s ease-in-out infinite; font-weight: bold; }
+        @keyframes flowRight { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* Screenshot showcase */
+        .screenshot-showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .screenshot-item { position: relative; border-radius: 16px; overflow: hidden; border: 2px solid rgba(102,126,234,0.4); transition: all 0.3s ease; background: rgba(0,0,0,0.3); }
+        .screenshot-item:hover { transform: translateY(-8px); border-color: rgba(102,126,234,0.8); box-shadow: 0 10px 40px rgba(102,126,234,0.3); }
+        .screenshot-item img { width: 100%; height: auto; display: block; border-radius: 14px; }
+        .screenshot-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; background: rgba(0,0,0,0.7); font-size: 0.9rem; color: #fff; text-align: center; font-weight: 600; }
+
+        .screenshot-single { max-width: 320px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(102,126,234,0.5); box-shadow: 0 10px 40px rgba(102,126,234,0.2); transition: all 0.3s ease; }
+        .screenshot-single:hover { transform: scale(1.05); border-color: rgba(102,126,234,0.9); }
+        .screenshot-single img { width: 100%; height: auto; display: block; }
+
+        .screenshot-pair { display: flex; gap: 20px; align-items: center; justify-content: center; }
+        .screenshot-pair .screenshot-single { max-width: 260px; }
+
+        /* Page indicator */
+        .page-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        .page-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(102,126,234,0.3);
+            transition: all 0.3s ease;
+        }
+        .page-dot.active {
+            background: #667eea;
+            width: 30px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .slide-content { grid-template-columns: 1fr; gap: 40px; }
+            h1 { font-size: 3.5rem; }
+            h2 { font-size: 2.2rem; }
+            h3 { font-size: 1.5rem; }
+            p { font-size: 1.1rem; }
+            .visual-section { height: 300px; }
+            .hero-visual { width: 100%; max-width: 400px; height: 250px; }
+            .hero-card { width: 120px; height: 180px; }
+            .tooth-visual { width: 300px; height: 300px; }
+            .game-visual { flex-wrap: wrap; }
+            .game-box { width: 140px; height: 180px; }
+            .reward-grid { grid-template-columns: 1fr; }
+            .stats-visual { flex-wrap: wrap; }
+            .stats-circle { width: 100px; height: 100px; font-size: 1.6rem; }
+            .future-visual { flex-wrap: wrap; }
+            .future-icon { width: 80px; height: 80px; }
+            .future-icon svg { width: 40px; height: 40px; }
+            .toc-grid { grid-template-columns: 1fr; }
+            .screenshot-showcase { grid-template-columns: 1fr; }
+            .screenshot-pair { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="logo">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="30" r="12" fill="#60a5fa"/>
+        <path d="M35 45 Q50 70 65 45" stroke="#60a5fa" stroke-width="4" fill="none"/>
+        <path d="M30 60 Q50 90 70 60" stroke="#60a5fa" stroke-width="4" fill="none"/>
+    </svg>
+    <div class="logo-text">毕业答辩</div>
+</div>
+<div class="container">
+    <canvas class="particles-canvas" id="particlesCanvas"></canvas>
+
+    <!-- Slide 1: Cover -->
+    <div class="slide slide-1 active" data-index="0">
+        <div class="slide-content">
+            <div>
+                <h1 class="animate-fade-up delay-1">纳爱斯“牙菌斑大作战”<br>互动界面设计</h1>
+                <p class="subtitle animate-fade-up delay-2"><span class="text-italic">毕业设计答辩汇报</span></p>
+                <div class="hero-visual animate-fade-scale delay-3">
+                    <div class="hero-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 8c0 1.5.5 3 1.5 4L12 22l4.5-10c1-1 1.5-2.5 1.5-4 0-3.5-2.5-6-6-6z"/><path d="M8 8h8M8 12h8"/></svg>
+                        <div class="label">清除牙菌斑</div>
+                    </div>
+                    <div class="hero-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M6 14h.01M10 10h4M10 14h4M18 10h.01M18 14h.01"/></svg>
+                        <div class="label">H5互动游戏</div>
+                    </div>
+                    <div class="hero-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M12 8v8M8 12h8"/></svg>
+                        <div class="label">优惠券转化</div>
+                    </div>
+                </div>
+                <div class="cover-info animate-fade-up delay-4">
+                    <p>答辩人：<strong>谢人翔</strong>　|　指导教师：<strong>黄丽冰</strong></p>
+                    <p>专业/班级：<strong>数字媒体应用技术 / 数媒5211</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: TOC -->
+    <div class="slide slide-2" data-index="1">
+        <div class="slide-content">
+            <div>
+                <h1 class="animate-fade-up delay-1">目 录</h1>
+                <div class="toc-grid">
+                    <div class="toc-card animate-fade-up delay-2">
+                        <div class="toc-num">1</div>
+                        <div class="toc-title">项目背景与研究意义</div>
+                    </div>
+                    <div class="toc-card animate-fade-up delay-3">
+                        <div class="toc-num">2</div>
+                        <div class="toc-title">需求分析与项目定位</div>
+                    </div>
+                    <div class="toc-card animate-fade-up delay-4">
+                        <div class="toc-num">3</div>
+                        <div class="toc-title">UI视觉与核心页面设计</div>
+                    </div>
+                    <div class="toc-card animate-fade-up delay-5">
+                        <div class="toc-num">4</div>
+                        <div class="toc-title">测试结果与项目总结</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Background -->
+    <div class="slide slide-3" data-index="2">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">第一部分</h3>
+                <h2 class="animate-fade-left delay-2">项目背景与研究意义</h2>
+                <p class="animate-fade-left delay-3 text-bg"><span class="highlight">行业痛点：</span>传统图文硬广难以触达 <span class="text-bold">Z 世代</span>年轻消费群体，年轻人更偏好<span class="text-underline">轻量化、有参与感</span>的互动形式。</p>
+                <p class="animate-fade-left delay-4"><span class="highlight-box">品牌诉求：</span>纳爱斯作为传统日化品牌，需要向年轻用户传递<span class="text-italic">“清除牙菌斑、根源修护牙龈”</span>的产品核心卖点。</p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-5">将产品功效与<span class="text-bold">“点击消灭牙菌斑”</span>的 H5 互动小游戏深度绑定</li>
+                    <li class="animate-item delay-6">让用户在<span class="highlight">娱乐中主动接收</span>品牌信息</li>
+                    <li class="animate-item delay-7">结合优惠券实现<span class="text-underline">电商转化闭环</span></li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="tooth-visual animate-fade-right delay-3">
+                    <div class="tooth-core">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 8c0 1.5.5 3 1.5 4L12 22l4.5-10c1-1 1.5-2.5 1.5-4 0-3.5-2.5-6-6-6z"/><path d="M8 8h8M8 12h8"/></svg>
+                    </div>
+                    <div class="orbit-ring"><div class="orbit-particle" style="top: -7px; left: 50%; transform: translateX(-50%);"></div></div>
+                    <div class="orbit-ring"><div class="orbit-particle" style="top: 50%; right: -7px; transform: translateY(-50%);"></div><div class="text-particle" style="top: 20%; left: 5%;">Z世代</div><div class="text-particle" style="bottom: 20%; right: 0%;">游戏化</div></div>
+                    <div class="orbit-ring"><div class="orbit-particle" style="bottom: -7px; left: 30%;"></div><div class="text-particle" style="top: 10%; right: 5%;">互动营销</div><div class="text-particle" style="bottom: 15%; left: 0%;">电商转化</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Requirements -->
+    <div class="slide slide-4" data-index="3">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">第二部分</h3>
+                <h2 class="animate-fade-left delay-2">需求分析与项目定位</h2>
+                <p class="animate-fade-left delay-3 text-bg">目标用户人群：<span class="highlight text-bold">18-25 岁的 Z 世代年轻群体</span></p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-4"><span class="highlight-box">体验需求</span>：拒绝复杂规则，追求<span class="text-bold">“低门槛、高反馈、强趣味”</span>，需要<span class="text-underline">即点即玩</span>。</li>
+                    <li class="animate-item delay-5"><span class="highlight-box">转化需求</span>：对电商福利敏感，有<span class="highlight">领券购物</span>的消费习惯。</li>
+                    <li class="animate-item delay-6"><span class="text-bold">首页</span> — 品牌曝光与游戏入口</li>
+                    <li class="animate-item delay-7"><span class="text-bold">规则说明页</span> — 玩法科普与福利展示</li>
+                    <li class="animate-item delay-8"><span class="text-bold">游戏挑战页 / 结算领券页 / 分享跳转</span></li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="game-visual">
+                    <div class="game-box animate-fade-scale delay-3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <div class="label">首页</div>
+                    </div>
+                    <span class="game-arrow animate-fade-up delay-4">→</span>
+                    <div class="game-box animate-fade-scale delay-5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <div class="label">规则页</div>
+                    </div>
+                    <span class="game-arrow animate-fade-up delay-6">→</span>
+                    <div class="game-box animate-fade-scale delay-7">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M6 14h.01M10 10h4M10 14h4M18 10h.01M18 14h.01"/></svg>
+                        <div class="label">游戏页</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: UI Design (Part 1) -->
+    <div class="slide slide-5" data-index="4">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">第三部分</h3>
+                <h2 class="animate-fade-left delay-2">UI 视觉与核心页面设计</h2>
+                <p class="animate-fade-left delay-3 text-bg"><span class="highlight">视觉系统：</span>提取纳爱斯品牌清新浅蓝 <span class="text-bold">（#82D0F5）</span> 为主色调，辅以<span class="text-italic">浅紫色</span>与<span class="highlight">暖粉色</span>丰富层次。</p>
+                <p class="animate-fade-left delay-4">设计了<span class="text-underline">软萌可爱的卡通牙菌斑</span>形象；UI 控件统一采用圆角设计，整体风格<span class="text-italic">清新元气</span>。</p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-5"><span class="highlight-box">玩法设定</span>：<span class="text-bold">60 秒限时挑战</span>，点击消灭随机生成的牙菌斑</li>
+                    <li class="animate-item delay-6"><span class="highlight-box">道具结合</span>：每 <span class="text-bold">15 秒</span> 刷出“纳爱斯牙膏”道具，<span class="text-underline">全屏清空牙菌斑</span>并恢复血量</li>
+                    <li class="animate-item delay-7">完美契合产品<span class="highlight">“清除牙菌斑”</span>的卖点</li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="tooth-visual animate-fade-scale delay-3">
+                    <div class="tooth-core">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 8c0 1.5.5 3 1.5 4L12 22l4.5-10c1-1 1.5-2.5 1.5-4 0-3.5-2.5-6-6-6z"/><path d="M8 8h8M8 12h8"/></svg>
+                    </div>
+                    <div class="orbit-ring" style="width: 240px; height: 240px;"><div class="orbit-particle" style="top: -7px; left: 50%;"></div></div>
+                    <div class="orbit-ring" style="width: 320px; height: 320px;"><div class="orbit-particle" style="top: 50%; right: -7px;"></div><div class="text-particle" style="top: 15%; left: 0%;">60秒挑战</div></div>
+                    <div class="orbit-ring" style="width: 400px; height: 400px;"><div class="orbit-particle" style="bottom: -7px; left: 30%;"></div><div class="text-particle" style="bottom: 15%; right: 0%;">15秒道具</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: UI Design (Part 2) - Screenshots 1-3 -->
+    <div class="slide slide-6" data-index="5">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">第三部分（续）</h3>
+                <h2 class="animate-fade-left delay-2">激励机制与开发亮点</h2>
+                <p class="animate-fade-left delay-3 text-bg">实行 <span class="highlight text-bold">阶梯式奖励</span>：得分 ≥ 100 获 <span class="highlight">10 元优惠券</span>；得分 ≥ 150 获 <span class="highlight">15 元优惠券</span>，刺激用户<span class="text-underline">反复挑战</span>。</p>
+                <p class="animate-fade-left delay-4">全程采用 <span class="highlight-box">Vibe Coding（AI 辅助编程）</span> 模式完成前端落地与移动端适配，大幅提升了项目的<span class="text-italic">落地效率</span>与<span class="text-underline">交互流畅度</span>。</p>
+            </div>
+            <div class="visual-section">
+                <div class="reward-grid">
+                    <div class="reward-card animate-fade-up delay-3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M12 8v8M8 12h8"/></svg>
+                        <div class="reward-title">≥ 100 分</div>
+                        <div class="reward-desc">10 元优惠券</div>
+                    </div>
+                    <div class="reward-card animate-fade-up delay-4">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M12 8v8M8 12h8"/></svg>
+                        <div class="reward-title">≥ 150 分</div>
+                        <div class="reward-desc">15 元优惠券</div>
+                    </div>
+                    <div class="reward-card animate-fade-up delay-5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                        <div class="reward-title">AI 辅助编程</div>
+                        <div class="reward-desc">Vibe Coding 模式</div>
+                    </div>
+                    <div class="reward-card animate-fade-up delay-6">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        <div class="reward-title">移动端适配</div>
+                        <div class="reward-desc">全机型兼容</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Screenshot Showcase 1-3 -->
+    <div class="slide slide-7" data-index="6">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">界面展示</h3>
+                <h2 class="animate-fade-left delay-2">核心页面截图</h2>
+                <p class="animate-fade-left delay-3 text-bg">以下是项目的主要界面截图，展示了从<span class="highlight">首页入口</span>到<span class="highlight">游戏规则</span>再到<span class="highlight">游戏挑战</span>的完整流程。</p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-4"><span class="highlight-box">image1</span>：首页 — 品牌曝光与游戏入口</li>
+                    <li class="animate-item delay-5"><span class="highlight-box">image2</span>：规则页 — 玩法说明与优惠券档位</li>
+                    <li class="animate-item delay-6"><span class="highlight-box">image3</span>：游戏页 — 口腔场景与牙菌斑互动</li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="screenshot-showcase">
+                    <div class="screenshot-item animate-fade-up delay-3">
+                        <img src="media/image1.jpeg" alt="首页">
+                        <div class="screenshot-label">首页</div>
+                    </div>
+                    <div class="screenshot-item animate-fade-up delay-4">
+                        <img src="media/image2.jpeg" alt="规则页">
+                        <div class="screenshot-label">规则页</div>
+                    </div>
+                    <div class="screenshot-item animate-fade-up delay-5">
+                        <img src="media/image3.jpeg" alt="游戏页">
+                        <div class="screenshot-label">游戏页</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 8: Screenshot Showcase 4-6 -->
+    <div class="slide slide-8" data-index="7">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">界面展示（续）</h3>
+                <h2 class="animate-fade-left delay-2">结算与分享页面</h2>
+                <p class="animate-fade-left delay-3 text-bg">游戏结束后展示<span class="highlight">得分结算</span>、<span class="highlight">优惠券发放</span>以及<span class="highlight">分享裂变</span>和<span class="highlight">店铺引流</span>功能。</p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-4"><span class="highlight-box">image4</span>：成功结算 — 获得最高档位优惠券</li>
+                    <li class="animate-item delay-5"><span class="highlight-box">image5</span>：失败结算 — 鼓励再次挑战</li>
+                    <li class="animate-item delay-6"><span class="highlight-box">image6</span>：分享与店铺跳转 — 社交裂变与电商转化</li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="screenshot-showcase">
+                    <div class="screenshot-item animate-fade-up delay-3">
+                        <img src="media/image4.jpeg" alt="成功结算">
+                        <div class="screenshot-label">成功结算</div>
+                    </div>
+                    <div class="screenshot-item animate-fade-up delay-4">
+                        <img src="media/image5.jpeg" alt="失败结算">
+                        <div class="screenshot-label">失败结算</div>
+                    </div>
+                    <div class="screenshot-item animate-fade-up delay-5">
+                        <img src="media/image6.jpeg" alt="分享跳转">
+                        <div class="screenshot-label">分享跳转</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 9: Test Results -->
+    <div class="slide slide-9" data-index="8">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">第四部分</h3>
+                <h2 class="animate-fade-left delay-2">测试结果与项目总结</h2>
+                <p class="animate-fade-left delay-3 text-bg"><span class="highlight">兼容性：</span>完美适配 <span class="text-bold">iOS</span> 与 <span class="text-bold">Android</span> 系统的各类主流机型，<span class="text-underline">无排版错乱及卡顿现象</span>。</p>
+                <p class="animate-fade-left delay-4"><span class="highlight-box">用户反馈：</span>在 <span class="text-bold">20 位</span> 目标用户的体验测试中，三项评分均超过 <span class="highlight">9 分</span>（满分 10 分）。</p>
+                <p class="animate-fade-left delay-5"><span class="text-italic">转化意愿：</span><span class="highlight text-bold" style="font-size: 1.8rem;">85%</span> 的用户表示福利有吸引力并愿意前往店铺查看，<span class="text-underline">成功实现引流目标</span>。</p>
+            </div>
+            <div class="visual-section">
+                <div class="stats-visual">
+                    <div class="stats-item animate-fade-up delay-3">
+                        <div class="stats-circle">9+</div>
+                        <div class="stats-label">用户评分</div>
+                    </div>
+                    <div class="stats-item animate-fade-up delay-4">
+                        <div class="stats-circle">85%</div>
+                        <div class="stats-label">转化意愿</div>
+                    </div>
+                    <div class="stats-item animate-fade-up delay-5">
+                        <div class="stats-circle">20</div>
+                        <div class="stats-label">测试用户</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 10: Future -->
+    <div class="slide slide-10" data-index="9">
+        <div class="slide-content">
+            <div class="text-section">
+                <h3 class="animate-fade-left delay-1">展望</h3>
+                <h2 class="animate-fade-left delay-2">项目不足与未来展望</h2>
+                <p class="animate-fade-left delay-3 text-bg"><span class="highlight">目前不足：</span>目前为<span class="text-bold">单关卡玩法</span>，缺乏<span class="text-italic">用户行为数据埋点</span>与<span class="text-underline">排行榜</span>等深度的社交裂变功能。</p>
+                <ul class="feature-list">
+                    <li class="animate-item delay-4">增加 <span class="highlight-box">多关卡模式</span>、丰富道具类型</li>
+                    <li class="animate-item delay-5">引入 <span class="highlight-box">数据统计模型</span> 及 <span class="text-bold">微信好友 PK 对战</span> 机制</li>
+                    <li class="animate-item delay-6">进一步扩大 <span class="text-underline">品牌曝光范围</span> 与 <span class="text-underline">营销转化效果</span></li>
+                </ul>
+            </div>
+            <div class="visual-section">
+                <div class="future-visual">
+                    <div class="future-step animate-fade-up delay-3">
+                        <div class="future-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        </div>
+                        <div class="future-label">多关卡</div>
+                    </div>
+                    <span class="future-arrow animate-fade-up delay-4">→</span>
+                    <div class="future-step animate-fade-up delay-5">
+                        <div class="future-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                        </div>
+                        <div class="future-label">数据埋点</div>
+                    </div>
+                    <span class="future-arrow animate-fade-up delay-6">→</span>
+                    <div class="future-step animate-fade-up delay-7">
+                        <div class="future-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+                        </div>
+                        <div class="future-label">PK对战</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 11: End -->
+    <div class="slide slide-11" data-index="10">
+        <div class="slide-content">
+            <div style="text-align: center;">
+                <h1 class="animate-fade-up delay-1">感谢聆听</h1>
+                <p class="subtitle animate-fade-up delay-2"><span class="text-italic">感谢各位评委老师的聆听</span></p>
+                <div class="hero-visual animate-fade-scale delay-3" style="height: 200px;">
+                    <div class="hero-card" style="width: 160px; height: 160px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                </div>
+                <p class="tagline animate-fade-up delay-4"><span class="text-bold">请批评指正！</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-indicator" id="pageIndicator">
+    <div class="page-dot active"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+    <div class="page-dot"></div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const totalSlides = 11;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.page-dot');
+
+    function goToSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+
+        slides.forEach(s => s.classList.remove('active'));
+        slides[index].classList.add('active');
+        currentSlide = index;
+
+        dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') goToSlide(currentSlide - 1);
+        if (e.key === 'ArrowRight' || e.key === ' ') goToSlide(currentSlide + 1);
+    });
+
+    // Touch support
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    document.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX < touchStartX - 50) goToSlide(currentSlide + 1);
+        if (touchEndX > touchStartX + 50) goToSlide(currentSlide - 1);
+    });
+
+    // Particles Animation
+    class Particles {
+        constructor() {
+            this.canvas = document.getElementById('particlesCanvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.particles = [];
+            this.colors = [
+                '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8',
+                '#1e40af', '#1e3a8a', '#3b82f6', '#60a5fa'
+            ];
+            this.resizeCanvas();
+            this.createParticles();
+            this.animate();
+            window.addEventListener('resize', () => this.resizeCanvas());
+        }
+
+        resizeCanvas() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        }
+
+        createParticles() {
+            this.particles = [];
+            const particleCount = Math.floor(window.innerWidth * window.innerHeight / 15000);
+
+            for (let i = 0; i < particleCount; i++) {
+                this.particles.push({
+                    x: Math.random() * this.canvas.width,
+                    y: Math.random() * this.canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.8,
+                    speedY: (Math.random() - 0.5) * 0.8,
+                    color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                    opacity: Math.random() * 0.5 + 0.1,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        updateParticles() {
+            this.particles.forEach(particle => {
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                particle.pulse += 0.02;
+
+                if (particle.x < 0 || particle.x > this.canvas.width) {
+                    particle.speedX *= -1;
+                }
+                if (particle.y < 0 || particle.y > this.canvas.height) {
+                    particle.speedY *= -1;
+                }
+            });
+        }
+
+        drawParticles() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.particles.forEach(particle => {
+                const pulseFactor = 0.8 + Math.sin(particle.pulse) * 0.2;
+
+                this.ctx.save();
+                this.ctx.globalAlpha = particle.opacity;
+                this.ctx.fillStyle = particle.color;
+                this.ctx.beginPath();
+                this.ctx.arc(particle.x, particle.y, particle.size * pulseFactor, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.shadowColor = particle.color;
+                this.ctx.shadowBlur = 15;
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0;
+
+                this.ctx.restore();
+            });
+        }
+
+        animate() {
+            this.updateParticles();
+            this.drawParticles();
+            requestAnimationFrame(() => this.animate());
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new Particles();
+    });
+</script>
+</body>
+</html>
